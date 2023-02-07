@@ -1,4 +1,4 @@
-# MULTIHOST HELLO DOCKER MPI
+# MULTIHOST HELLO SINGULARITY MPI
 This repository is an example of running OpenMPI in multiple hosts using Singularity.
 
 
