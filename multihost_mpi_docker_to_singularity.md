@@ -68,7 +68,6 @@ decomposePar
 
 6. **Parallel Simulation with MPI**: Run the solver in parallel using MPI. In this example, we use 4 MPI processes.
 
-Run the solver in parallel using MPI:
 ```
 mpirun -np 4 foamRun -parallel
 ```
