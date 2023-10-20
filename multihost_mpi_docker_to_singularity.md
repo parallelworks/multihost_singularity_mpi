@@ -116,10 +116,9 @@ source /opt/openfoam11/etc/bashrc
 3. **Prepare the OpenFOAM Case**: Repeat the following steps (2, 3, 4, and 5) for preparing the OpenFOAM case, which involves copying the Cyclone tutorial, changing directories, and configuring decomposition parameters, just like in the Docker container. These steps remain the same.
 
 
+We will now explore two alternative ways to run the OpenFOAM simulation with OpenMPI:
 
-4. **Alternative Methods for Running with OpenMPI**: We will now explore two alternative ways to run the OpenFOAM simulation with OpenMPI:
-
-- - **OpenMPI Inside the Container**: To use the OpenMPI installation inside the container, you can run the simulation with the following command while in the Singularity container:
+- **OpenMPI Inside the Container**: To use the OpenMPI installation inside the container, you can run the simulation with the following command while in the Singularity container:
 
 ```
 mpirun -np 4 foamRun -parallel
@@ -132,7 +131,7 @@ Alternatively, you can run the simulation from outside the container using this 
 singularity exec /path/to/openfoam.sif /bin/bash -c "source /opt/openfoam11/etc/bashrc; mpirun -np 4 foamRun -parallel"
 ```
 
-- - **OpenMPI Outside the Container**:  To use an OpenMPI installation outside the container, ensure that it's compatible with the version of OpenMPI inside the container. To check the version, use mpirun --version. For example, if the container uses version 4.0.3 and your external installation uses version 4.0.1, you can run the simulation as follows:
+- **OpenMPI Outside the Container**:  To use an OpenMPI installation outside the container, ensure that it's compatible with the version of OpenMPI inside the container. To check the version, use mpirun --version. For example, if the container uses version 4.0.3 and your external installation uses version 4.0.1, you can run the simulation as follows:
 
 
 ```
