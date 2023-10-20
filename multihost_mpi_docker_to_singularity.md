@@ -1,10 +1,10 @@
 # Converting Docker to Singularity for Multihost MPI Simulation
-To begin this tutorial, make sure you're logged into the controller node of a cloud cluster. You can find detailed login instructions by visiting this [link](https://parallelworks.com/docs/compute/logging-in-controller).
+Welcome to our tutorial on converting a Docker container to a Singularity container for running MPI simulations across multiple nodes within a SLURM-based cluster. Before we begin, please ensure that you are logged into the controller node of your cloud cluster. If you need instructions for logging in, you can find them [here](https://parallelworks.com/docs/compute/logging-in-controller).
 
-In this tutorial, we'll show you how to convert a Docker container into a Singularity container and use it to run simulations that utilize MPI across multiple nodes within a SLURM-based cluster.
 
-For our example, we'll use the [official OpenFOAM Docker container](https://hub.docker.com/r/openfoam/openfoam11-paraview510). Keep in mind that this container already has OpenFOAM precompiled. So, for creating the Singularity container, we'll adopt the Hybrid Approach. If you're working with software that requires compilation, you can explore the Bind Approach. You can find more details on these methods in this [link](https://docs.sylabs.io/guides/3.7/user-guide/mpi.html#singularity-and-mpi-applications). Our demonstration will focus on running the OpenFOAM cyclone tutorial as a sample case.
+In this tutorial, we will demonstrate how to convert a Docker container into a Singularity container and use it to run simulations that harness the power of MPI for parallel computing. We will be focusing on running the OpenFOAM cyclone tutorial as a sample case using the official OpenFOAM Docker container(https://hub.docker.com/r/openfoam/openfoam11-paraview510). Keep in mind that this Docker container already has OpenFOAM precompiled. To achieve this, we will adopt the Hybrid Approach for creating the Singularity container. If you're working with software that requires compilation, you can explore the Bind Approach, which is detailed [here](https://docs.sylabs.io/guides/3.7/user-guide/mpi.html#singularity-and-mpi-applications).
 
+Now, let's dive into the process of converting the Docker container to a Singularity container and running your  MPI simulations efficiently on your cluster using multiple nodes.
 
 ## Running OpenFOAM with Docker
 Let's first dive into running OpenFOAM simulations inside the Docker container on the controller node of your cloud cluster. Here's how to get started:
@@ -27,7 +27,7 @@ cp -r /opt/openfoam11/tutorials/incompressibleDenseParticleFluid/cyclone .
 cd cyclone
 ```
 
-4. **Configure Decomposition Parameters**: Edit the `system/decomposeParDict` file to set the `numberOfSubdomains` and `simpleCoeffs` parameters. These parameters define how the mesh will be divided among MPI processes. Make sure that `numberOfSubdomains` is smaller than the number of cores in the controller node and matches the multiplication of the coefficients in the `simpleCoeffs` parameter.
+4. **Configure Decomposition Parameters**: Edit the `system/decomposeParDict` file to set the `numberOfSubdomains` and `simpleCoeffs` parameters. These parameters define how the mesh will be divided among MPI processes. Make sure that `numberOfSubdomains` is not larger than the number of cores in the controller node and matches the multiplication of the coefficients in the `simpleCoeffs` parameter.
 
 Here's an example for a controller node with 4 cores where the mesh is divided into 4 subdomains:
 
@@ -140,4 +140,32 @@ mpirun -np 4 singularity exec  /path/to/openfoam.sif /bin/bash -c "source /opt/o
 
 
 ## Running OpenFOAM with Singularity using Multiple Nodes
+To run your simulation utilizing MPI accross multiple nodes you need to use the OpenMPI installation outside the container. Follow the steps below:
 
+1. **Create the SLURM Script**: Prepare a SLURM job script, such as run.sh, to submit the simulation job to the SLURM-based cluster. In this script, specify the required SLURM parameters and configure the tasks and nodes as needed. Ensure that the number of tasks per node does not exceed the number of cores available on each compute node in the cluster. Below is an example run.sh script:
+
+```
+#!/bin/bash
+#SBATCH --nodes=2
+#SBATCH --job-name=singularity-openfoam
+#SBATCH --output=singularity-openfoam.out
+#SBATCH --ntasks-per-node=2
+#SBATCH --chdir=/path/to/shared/directory/with/OpenFoam/Case
+
+# LOAD OpenMPI ENVIRONMENT HERE!
+
+# REPLACE THE PATH TO THE SIF FILE
+SIF_PATH="/path/to/openfoam.sif"
+
+# MESH CASE
+singularity exec ${SIF_PATH} /bin/bash -c "source /opt/openfoam11/etc/bashrc; blockMesh"
+singularity exec ${SIF_PATH} /bin/bash -c "source /opt/openfoam11/etc/bashrc; snappyHexMesh -overwrite"
+singularity exec ${SIF_PATH} /bin/bash -c "source /opt/openfoam11/etc/bashrc; decomposePar"
+
+# RUN SIMULATION
+mpirun -np 4 singularity exec ${SIF_PATH} /bin/bash -c "source /opt/openfoam11/etc/bashrc; foamRun -parallel"
+```
+
+1. **Submit the SLURM Job**: Use the sbatch command to submit the SLURM job script, such as sbatch run.sh, to the cluster's job scheduler. This initiates the simulation using the specified SLURM parameters.
+
+By following these steps, you can run OpenFOAM simulations across multiple nodes within a SLURM-based cluster using Singularity and OpenMPI. This approach allows for efficient parallel processing and scaling of simulations.
