@@ -77,3 +77,24 @@ mpirun -np 4 foamRun -parallel
 That's it! You've successfully run an OpenFOAM simulation within the Docker container on your cloud cluster's controller node.
 
 ## Converting the Docker Container to a Singularity Container
+To convert a Docker container into a Singularity container, follow these steps. Please note that root access is required for this process.
+
+
+1. **Singularity Definition File**: Create a Singularity definition file named openfoam.def with the following simple definition. For more information on creating this file, you can refer to this [link](https://docs.sylabs.io/guides/3.7/user-guide/definition_files.html).
+
+```
+BootStrap: docker
+From: openfoam/openfoam11-paraview510
+
+%help
+  This Singularity container of the openfoam/openfoam11-paraview510 docker repository
+
+```
+
+2. **Build the Singularity Container**: Use the command below to build the singularity container where `openfoam.sif` and `openfoam.def` are the paths to the singularity container file and definition file, respectively.
+
+```
+sudo singularity build openfoam.sif openfoam.def
+```
+
+
