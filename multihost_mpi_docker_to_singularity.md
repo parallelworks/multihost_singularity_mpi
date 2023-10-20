@@ -6,7 +6,7 @@ In this tutorial, we'll show you how to convert a Docker container into a Singul
 For our example, we'll use the [official OpenFOAM Docker container](https://hub.docker.com/r/openfoam/openfoam11-paraview510). Keep in mind that this container already has OpenFOAM precompiled. So, for creating the Singularity container, we'll adopt the Hybrid Approach. If you're working with software that requires compilation, you can explore the Bind Approach. You can find more details on these methods in this [link](https://docs.sylabs.io/guides/3.7/user-guide/mpi.html#singularity-and-mpi-applications). Our demonstration will focus on running the OpenFOAM cyclone tutorial as a sample case.
 
 
-## Running OpenFOAM inside the Docker Container
+## Running OpenFOAM with Docker
 Let's first dive into running OpenFOAM simulations inside the Docker container on the controller node of your cloud cluster. Here's how to get started:
 
 1. **Start an Interactive Shell**: Launch an interactive shell within the Docker container with the following command.
@@ -66,7 +66,7 @@ snappyHexMesh -overwrite
 decomposePar
 ```
 
-6. **Parallel Simulation with MPI**: Run the solver in parallel using MPI. In this example, we use 4 MPI processes.
+6. **Parallel Simulation with OpenMPI**: Run the solver in parallel using OpenMPI. In this example, we use 4 MPI processes.
 
 ```
 mpirun -np 4 foamRun -parallel
@@ -97,4 +97,48 @@ From: openfoam/openfoam11-paraview510
 sudo singularity build openfoam.sif openfoam.def
 ```
 
+
+## Running OpenFOAM with Singularity
+Running OpenFOAM simulations within the Singularity container follows similar steps to those in the Docker container. Here's how to do it:
+
+1. **Start an Interactive Shell**: Launch an interactive shell within the Singularity container using the following command. Note that the user's home directory is automatically mounted inside the container.
+
+```
+singularity shell ./openfoam.sif /bin/bash
+```
+
+2. **Load OpenFOAM Environment**: Unlike the Docker container, in the Singularity container, you need to manually load the OpenFOAM environment by running:
+
+```
+source /opt/openfoam11/etc/bashrc
+```
+
+3. **Prepare the OpenFOAM Case**: Repeat the following steps (2, 3, 4, and 5) for preparing the OpenFOAM case, which involves copying the Cyclone tutorial, changing directories, and configuring decomposition parameters, just like in the Docker container. These steps remain the same.
+
+
+
+4. **Alternative Methods for Running with OpenMPI**: We will now explore two alternative ways to run the OpenFOAM simulation with OpenMPI:
+
+- **OpenMPI Inside the Container**: To use the OpenMPI installation inside the container, you can run the simulation with the following command while in the Singularity container:
+
+```
+mpirun -np 4 foamRun -parallel
+```
+
+
+Alternatively, you can run the simulation from outside the container using this command (replace /path/to/openfoam.sif with your container path):
+
+```
+singularity exec /path/to/openfoam.sif /bin/bash -c "source /opt/openfoam11/etc/bashrc; mpirun -np 4 foamRun -parallel"
+```
+
+- **OpenMPI Outside the Container**:  To use an OpenMPI installation outside the container, ensure that it's compatible with the version of OpenMPI inside the container. To check the version, use mpirun --version. For example, if the container uses version 4.0.3 and your external installation uses version 4.0.1, you can run the simulation as follows:
+
+
+```
+mpirun -np 4 singularity exec  /path/to/openfoam.sif /bin/bash -c "source /opt/openfoam11/etc/bashrc; foamRun -parallel"
+```
+
+
+## Running OpenFOAM with Singularity using Multiple Nodes
 
